@@ -1,0 +1,19 @@
+# Fly.io config.
+app = "name-of-the-year-bot"
+primary_region = "lax"
+
+[build]
+
+[env]
+  DB_PATH = "/data/names.sqlite3"
+  TIMEZONE = "America/Los_Angeles"
+
+# SQLite lives on a persistent volume; without this every deploy would wipe the names.
+[mounts]
+  source = "namebot_data"
+  destination = "/data"
+
+# No [http_service]: the bot dials out to Discord, nothing dials in, so the machine stays up.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
