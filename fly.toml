@@ -17,3 +17,8 @@ primary_region = "lax"
 [[vm]]
   size = "shared-cpu-1x"
   memory = "256mb"
+
+# Bring the bot back up if the process ever exits.
+[[restart]]
+  policy = "always"
+  retries = 10
