@@ -89,3 +89,23 @@ def test_bracket_rounds(db):
     db.finish_bracket(2026, ids[2])
     assert db.active_bracket() is None
     assert db.year_winners()[0]['id'] == ids[2]
+
+
+def test_migrates_db_created_before_mastery_columns(tmp_path):
+    import sqlite3
+
+    path = tmp_path / 'old.sqlite3'
+    old = sqlite3.connect(path)
+    old.execute('CREATE TABLE names (id INTEGER PRIMARY KEY, puuid TEXT UNIQUE, game_name TEXT NOT NULL,'
+                ' tag_line TEXT NOT NULL, riot_id_lower TEXT NOT NULL, submitted_by INTEGER NOT NULL,'
+                ' submitted_at TEXT NOT NULL, month TEXT NOT NULL, card_channel_id INTEGER,'
+                ' card_message_id INTEGER UNIQUE, level INTEGER, icon_id INTEGER, rank TEXT,'
+                ' removed INTEGER NOT NULL DEFAULT 0)')
+    old.commit()
+    old.close()
+    db = Database(path)
+    name_id = db.add_name(puuid='p', game_name='Teemothy', tag_line='NA1', submitted_by=1, submitted_at=T0,
+                          month='2026-03', level=1, icon_id=1, rank='Unranked', main_champ='Teemo',
+                          mastery_level=42, mastery_points=99)
+    assert db.get_name(name_id)['main_champ'] == 'Teemo'
+    Database(path)  # re-opening an already-migrated DB is a no-op

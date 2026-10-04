@@ -10,7 +10,7 @@ A Discord bot for collecting the funniest League names you run into, voting on t
   the `#tag`, the bot assumes `#NA1`.
 - **Card:** the bot looks the account up with the Riot API (NA), rejects typos and accounts that don't
   exist, catches duplicates (even if the account has been renamed since), and replies with a card
-  showing rank, level, profile icon, and an op.gg link.
+  showing rank, level, main champ + mastery, profile icon, and an op.gg link.
 - **Vote:** react 👍 on the card. One vote per person per name.
 - **Name of the Month:** on the 1st (Pacific time), the bot crowns the top-voted name submitted last
   month and posts the runners-up.
@@ -50,7 +50,7 @@ A Discord bot for collecting the funniest League names you run into, voting on t
 At <https://developer.riotgames.com>, register a **Personal API Key** product. Approval takes a few
 days, and the key doesn't expire. The default dev key **expires every 24h**, which is fine for local
 testing but not for an always-on bot. If the key is missing or expired, the bot still accepts names.
-It marks them unverified and skips the rank, level, and icon.
+It marks them unverified and skips the rank, level, main champ, and icon.
 
 ### 3. Run locally
 

@@ -98,6 +98,9 @@ class NameBot(discord.Client):
                     submitted_by=message.author.id, submitted_at=now, month=month_key(now, self.cfg.tz),
                     level=profile.level if profile else None, icon_id=profile.icon_id if profile else None,
                     rank=profile.rank if profile else None,
+                    main_champ=profile.main_champ if profile else None,
+                    mastery_level=profile.mastery_level if profile else None,
+                    mastery_points=profile.mastery_points if profile else None,
                 )
             except sqlite3.IntegrityError:  # lost a race with an identical submission
                 duplicate = self.db.find_duplicate(profile.puuid if profile else None, game_name, tag_line)
@@ -107,8 +110,8 @@ class NameBot(discord.Client):
 
             row = self.db.get_name(name_id)
             embed = cards.name_card(
-                row, icon_url=await self.riot.icon_url(row['icon_id']), vote_emoji=self.cfg.vote_emoji,
-                verified=verified, tag_defaulted=sub.tag_defaulted,
+                row, icon_url=await self.riot.icon_url(row['icon_id']), verified=verified,
+                tag_defaulted=sub.tag_defaulted,
             )
             try:
                 card = await message.reply(embed=embed)

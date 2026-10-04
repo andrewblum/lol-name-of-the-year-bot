@@ -19,7 +19,10 @@ CREATE TABLE IF NOT EXISTS names (
     level INTEGER,
     icon_id INTEGER,
     rank TEXT,
-    removed INTEGER NOT NULL DEFAULT 0
+    removed INTEGER NOT NULL DEFAULT 0,
+    main_champ TEXT,
+    mastery_level INTEGER,
+    mastery_points INTEGER
 );
 CREATE INDEX IF NOT EXISTS names_month ON names(month);
 CREATE INDEX IF NOT EXISTS names_riot_id ON names(riot_id_lower);
@@ -70,6 +73,13 @@ CREATE TABLE IF NOT EXISTS matches (
 );
 """
 
+# Columns added after the first deploy; CREATE TABLE IF NOT EXISTS won't add them to an existing DB.
+MIGRATIONS = {
+    'main_champ': 'ALTER TABLE names ADD COLUMN main_champ TEXT',
+    'mastery_level': 'ALTER TABLE names ADD COLUMN mastery_level INTEGER',
+    'mastery_points': 'ALTER TABLE names ADD COLUMN mastery_points INTEGER',
+}
+
 VOTE_COUNT = '(SELECT COUNT(*) FROM votes v WHERE v.name_id = n.id)'
 
 
@@ -80,6 +90,11 @@ class Database:
         self.conn.execute('PRAGMA foreign_keys = ON')
         self.conn.execute('PRAGMA journal_mode = WAL')
         self.conn.executescript(SCHEMA)
+        columns = {r['name'] for r in self.conn.execute('PRAGMA table_info(names)')}
+        with self.conn:
+            for column, ddl in MIGRATIONS.items():
+                if column not in columns:
+                    self.conn.execute(ddl)
 
     # -- names -----------------------------------------------------------------
 
@@ -91,16 +106,19 @@ class Database:
 
     def add_name(self, *, puuid: str | None, game_name: str, tag_line: str, submitted_by: int,
                  submitted_at: datetime, month: str, level: int | None, icon_id: int | None,
-                 rank: str | None) -> int:
+                 rank: str | None, main_champ: str | None = None, mastery_level: int | None = None,
+                 mastery_points: int | None = None) -> int:
         with self.conn:
             # A previously removed entry for the same account must not block resubmission.
             if puuid:
                 self.conn.execute('UPDATE names SET puuid = NULL WHERE puuid = ? AND removed = 1', (puuid,))
             cur = self.conn.execute(
                 'INSERT INTO names (puuid, game_name, tag_line, riot_id_lower, submitted_by, submitted_at,'
-                ' month, level, icon_id, rank) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                ' month, level, icon_id, rank, main_champ, mastery_level, mastery_points)'
+                ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 (puuid, game_name, tag_line, f'{game_name}#{tag_line}'.lower(), submitted_by,
-                 submitted_at.isoformat(), month, level, icon_id, rank),
+                 submitted_at.isoformat(), month, level, icon_id, rank, main_champ, mastery_level,
+                 mastery_points),
             )
         return cur.lastrowid
 

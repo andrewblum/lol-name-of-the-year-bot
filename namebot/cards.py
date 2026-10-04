@@ -6,10 +6,19 @@ import sqlite3
 import discord
 
 from . import bracket
-from .periods import month_label
 from .riot import opgg_url
 
 CARD_COLOR = 0xC89B3C  # League gold
+
+
+def compact_number(n: int | None) -> str:
+    if n is None:
+        return '?'
+    if n >= 1_000_000:
+        return f'{n / 1_000_000:.1f}M'
+    if n >= 1_000:
+        return f'{n / 1_000:.0f}k'
+    return str(n)
 
 
 def riot_id(row: sqlite3.Row) -> str:
@@ -27,22 +36,24 @@ def name_link(guild_id: int, row: sqlite3.Row) -> str:
     return f'[{riot_id(row)}]({jump_url(guild_id, row) or opgg_url(row["game_name"], row["tag_line"])})'
 
 
-def name_card(row: sqlite3.Row, *, icon_url: str | None, vote_emoji: str, verified: bool,
-              tag_defaulted: bool) -> discord.Embed:
+def name_card(row: sqlite3.Row, *, icon_url: str | None, verified: bool, tag_defaulted: bool) -> discord.Embed:
     embed = discord.Embed(
         title=riot_id(row), url=opgg_url(row['game_name'], row['tag_line']), color=CARD_COLOR
     )
     if verified:
         embed.add_field(name='Rank', value=row['rank'] or 'Unranked')
         embed.add_field(name='Level', value=str(row['level'] or '?'))
+        if row['main_champ']:
+            embed.add_field(
+                name='Main',
+                value=f'{row["main_champ"]} · Mastery {row["mastery_level"]} ({compact_number(row["mastery_points"])} pts)',
+            )
     else:
         embed.description = "⚠️ Couldn't reach Riot to verify this account; added anyway."
     if tag_defaulted:
         embed.add_field(name='Tag', value='No #tag given; assumed #NA1', inline=False)
-    embed.add_field(name='Submitted by', value=f'<@{row["submitted_by"]}>', inline=False)
     if icon_url:
         embed.set_thumbnail(url=icon_url)
-    embed.set_footer(text=f'React {vote_emoji} to vote · Name of the Month: {month_label(row["month"])}')
     return embed
 
 
@@ -97,7 +108,7 @@ def help_embed(names_channel_id: int, vote_emoji: str, bracket_size: int, round_
         value=f'Post in <#{names_channel_id}>:\n`name: Teemothy#Teeto`\n'
               'The message has to **start with** `name:`. Everything else in the channel is just chat, so '
               'roast away. No `#tag`? The bot assumes `#NA1`. NA accounts only. '
-              'The bot replies with a card showing rank, level, and an op.gg link, and catches duplicates '
+              'The bot replies with a card showing rank, level, main champ, and an op.gg link, and catches duplicates '
               '(even renamed accounts).',
         inline=False,
     )

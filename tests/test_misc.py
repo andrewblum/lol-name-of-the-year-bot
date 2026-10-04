@@ -25,3 +25,35 @@ def test_format_rank():
 
 def test_opgg_url():
     assert opgg_url('xX Big Gank Xx', 'NA1') == 'https://op.gg/lol/summoners/na/xX%20Big%20Gank%20Xx-NA1'
+
+
+def test_compact_number():
+    from namebot.cards import compact_number
+
+    assert [compact_number(n) for n in (None, 950, 181_371, 1_234_567)] == ['?', '950', '181k', '1.2M']
+
+
+def test_lookup_includes_main_champ():
+    import asyncio
+
+    from namebot.riot import RiotClient
+
+    responses = {
+        'accounts/by-riot-id': {'puuid': 'p1', 'gameName': 'Teemothy', 'tagLine': 'Teeto'},
+        'summoners/by-puuid': {'summonerLevel': 312, 'profileIconId': 7},
+        'entries/by-puuid': [],
+        'champion-masteries': [{'championId': 17, 'championLevel': 42, 'championPoints': 1_500_000}],
+    }
+
+    async def fake_get(url):
+        return next(v for k, v in responses.items() if k in url)
+
+    async def fake_champ(champion_id):
+        return {17: 'Teemo'}[champion_id]
+
+    client = RiotClient('key', session=None)
+    client._get = fake_get
+    client.champion_name = fake_champ
+    profile = asyncio.run(client.lookup('teemothy', 'teeto'))
+    assert (profile.main_champ, profile.mastery_level, profile.mastery_points) == ('Teemo', 42, 1_500_000)
+    assert profile.game_name == 'Teemothy' and profile.level == 312
