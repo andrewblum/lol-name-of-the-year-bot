@@ -153,6 +153,14 @@ class Database:
             'SELECT * FROM names WHERE riot_id_lower = ? AND removed = 0', (riot_id.strip().lower(),)
         ).fetchone()
 
+    def search_names(self, query: str, limit: int = 25) -> list[sqlite3.Row]:
+        """Substring match on Riot ID, newest first (25 is Discord's autocomplete cap)."""
+        return self.conn.execute(
+            'SELECT * FROM names WHERE removed = 0 AND instr(riot_id_lower, ?) > 0'
+            ' ORDER BY submitted_at DESC LIMIT ?',
+            (query.strip().lower(), limit),
+        ).fetchall()
+
     def top_names(self, *, month: str | None = None, year: int | None = None,
                   limit: int = 10) -> list[sqlite3.Row]:
         where, params = ['n.removed = 0'], []

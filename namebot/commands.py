@@ -87,11 +87,16 @@ def register(bot: 'NameBot'):
     @bot.tree.command(name='remove-name', description='Admin: remove a submission (dupes, trolls)',
                       guild=guild)
     @app_commands.default_permissions(manage_guild=True)
-    @app_commands.describe(riot_id='e.g. Teemothy#Teeto')
-    async def remove_name(interaction: discord.Interaction, riot_id: str):
-        row = db.name_by_riot_id(riot_id)
+    @app_commands.describe(name='Start typing to search submitted names')
+    async def remove_name(interaction: discord.Interaction, name: str):
+        row = db.name_by_riot_id(name)
         if not row:
-            await interaction.response.send_message(f'No submission found for `{riot_id}`.', ephemeral=True)
+            await interaction.response.send_message(f'No submission found for `{name}`.', ephemeral=True)
             return
         db.remove_name(row['id'])
         await interaction.response.send_message(f'Removed **{cards.riot_id(row)}**.', ephemeral=True)
+
+    @remove_name.autocomplete('name')
+    async def remove_name_autocomplete(interaction: discord.Interaction, current: str):
+        return [app_commands.Choice(name=cards.riot_id(r), value=cards.riot_id(r))
+                for r in db.search_names(current)]

@@ -29,7 +29,7 @@ A Discord bot for collecting the funniest League names you run into, voting on t
 | `/halloffame` | anyone | Every Name of the Month and Name of the Year |
 | `/bracket` | anyone | The current or most recent bracket |
 | `/bracket-start [year]` | Manage Server | Start a bracket now, e.g. a mid-year test run |
-| `/remove-name Riot#ID` | Manage Server | Remove a troll or mistaken submission |
+| `/remove-name` | Manage Server | Remove a troll or mistaken submission (autocompletes as you type) |
 
 ## Setup
 

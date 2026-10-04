@@ -109,3 +109,14 @@ def test_migrates_db_created_before_mastery_columns(tmp_path):
                           mastery_level=42, mastery_points=99)
     assert db.get_name(name_id)['main_champ'] == 'Teemo'
     Database(path)  # re-opening an already-migrated DB is a no-op
+
+
+def test_search_names(db):
+    add(db, 'Teemothy')
+    add(db, 'TeemoMain')
+    gone = add(db, 'TeemoGone')
+    db.remove_name(gone)
+    add(db, 'Other')
+    assert {r['game_name'] for r in db.search_names('teemo')} == {'Teemothy', 'TeemoMain'}
+    assert len(db.search_names('')) == 3
+    assert db.search_names('%') == []  # no LIKE wildcards
