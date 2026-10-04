@@ -123,4 +123,4 @@ def test_slash_commands_register(nb):
 
     register(nb)
     names = {c.name for c in nb.tree.get_commands(guild=nb.guild_obj)}
-    assert names == {'top', 'random', 'halloffame', 'bracket', 'bracket-start', 'remove-name'}
+    assert names == {'help', 'top', 'random', 'halloffame', 'bracket', 'bracket-start', 'remove-name'}

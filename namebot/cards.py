@@ -1,5 +1,6 @@
 """Discord message formatting."""
 
+import calendar
 import sqlite3
 
 import discord
@@ -80,4 +81,53 @@ def bracket_board(year: int, total_rounds: int, matches: list[sqlite3.Row], name
         if lines:
             embed.add_field(name=bracket.round_name(round_, total_rounds), value='\n'.join(lines)[:1024],
                             inline=False)
+    return embed
+
+
+def help_embed(names_channel_id: int, vote_emoji: str, bracket_size: int, round_hours: int,
+               bracket_start: tuple[int, int] | None) -> discord.Embed:
+    embed = discord.Embed(
+        title='🏆 Name of the Year: how it works',
+        description='Spot a cursed or hilarious name in a game? Submit it, vote on everyone else\'s, and we '
+                    'crown a **Name of the Month** and, at the end of the year, a **Name of the Year**.',
+        color=CARD_COLOR,
+    )
+    embed.add_field(
+        name='📝 Submit a name',
+        value=f'Post in <#{names_channel_id}>:\n`name: Teemothy#Teeto`\n'
+              'The message has to **start with** `name:`. Everything else in the channel is just chat, so '
+              'roast away. No `#tag`? The bot assumes `#NA1`. NA accounts only. '
+              'The bot replies with a card showing rank, level, and an op.gg link, and catches duplicates '
+              '(even renamed accounts).',
+        inline=False,
+    )
+    embed.add_field(
+        name=f'{vote_emoji} Vote',
+        value=f'React {vote_emoji} on a name\'s card. One vote per person per name; un-react to take it back.',
+        inline=False,
+    )
+    embed.add_field(
+        name='👑 Name of the Month',
+        value='On the 1st, the top-voted name submitted the previous month wins and gets a guaranteed spot '
+              'in the year-end bracket.',
+        inline=False,
+    )
+    when = (f'On {calendar.month_abbr[bracket_start[0]]} {bracket_start[1]}' if bracket_start
+            else 'After the year ends')
+    embed.add_field(
+        name='🏆 Name of the Year',
+        value=f'{when}, up to {bracket_size} names (every Name of the Month plus the top vote-getters) go '
+              f'into a bracket seeded by votes. Each matchup is a Discord poll, {round_hours}h per round, '
+              'and ties go to the higher seed.',
+        inline=False,
+    )
+    embed.add_field(
+        name='⌨️ Commands',
+        value='`/top` leaderboard (this month, this year, or all time)\n'
+              '`/random` a random name from the archive\n'
+              '`/halloffame` every Name of the Month and Name of the Year\n'
+              '`/bracket` the current or most recent bracket\n'
+              '`/help` this message',
+        inline=False,
+    )
     return embed

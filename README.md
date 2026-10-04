@@ -23,6 +23,7 @@ A Discord bot for collecting the funniest League names you run into, voting on t
 
 | Command | Who | What |
 |---|---|---|
+| `/help [public]` | anyone | How the bot works and how to submit. Only you see it, unless `public:True` (post it once and pin it) |
 | `/top [month\|year\|all]` | anyone | Leaderboard |
 | `/random` | anyone | A random name from the archive |
 | `/halloffame` | anyone | Every Name of the Month and Name of the Year |

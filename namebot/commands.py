@@ -15,6 +15,15 @@ if TYPE_CHECKING:
 def register(bot: 'NameBot'):
     cfg, db, guild = bot.cfg, bot.db, bot.guild_obj
 
+    @bot.tree.command(name='help', description='What this bot is and how to use it', guild=guild)
+    @app_commands.describe(public='Post it for everyone (e.g. to pin in the channel) instead of just you')
+    async def help_(interaction: discord.Interaction, public: bool = False):
+        await interaction.response.send_message(
+            embed=cards.help_embed(cfg.names_channel_id, cfg.vote_emoji, cfg.bracket_size, cfg.round_hours,
+                                   cfg.bracket_start),
+            ephemeral=not public,
+        )
+
     @bot.tree.command(name='top', description='Top-voted names', guild=guild)
     @app_commands.describe(period='Which period (default: this month)')
     async def top(interaction: discord.Interaction, period: Literal['month', 'year', 'all'] = 'month'):
