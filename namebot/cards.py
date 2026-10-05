@@ -41,13 +41,14 @@ def name_card(row: sqlite3.Row, *, icon_url: str | None, verified: bool, tag_def
         title=riot_id(row), url=opgg_url(row['game_name'], row['tag_line']), color=CARD_COLOR
     )
     if verified:
-        embed.add_field(name='Rank', value=row['rank'] or 'Unranked')
-        embed.add_field(name='Level', value=str(row['level'] or '?'))
         if row['main_champ']:
             embed.add_field(
                 name='Main',
-                value=f'{row["main_champ"]} · Mastery {row["mastery_level"]} ({compact_number(row["mastery_points"])} pts)',
+                value=f'**{row["main_champ"]}**\nMastery {row["mastery_level"]} · '
+                      f'{compact_number(row["mastery_points"])} pts',
             )
+        embed.add_field(name='Rank', value=row['rank'] or 'Unranked')
+        embed.add_field(name='Level', value=str(row['level'] or '?'))
     else:
         embed.description = "⚠️ Couldn't reach Riot to verify this account; added anyway."
     if tag_defaulted:
